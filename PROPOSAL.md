@@ -13,11 +13,11 @@ If I have additional time, I would probably try to add key-presses that will car
 
 ### Some Resources to Look At!
 Here are some resources I have found for this project: 
--- https://www.pyimagesearch.com/2014/07/07/color-quantization-opencv-using-k-means-clustering/
----- Though this link is in python, procedurally, it is still relevant!
+1. https://www.pyimagesearch.com/2014/07/07/color-quantization-opencv-using-k-means-clustering/
+* Though this link is in python, procedurally, it is still relevant!
 
--- https://github.com/openframeworks/openFrameworks/tree/master/examples/video/asciiVideoExample
----- This was a part of the open frameworks examples, and it accesses the webcam in a way similar to what I think I need to do for this project.
+2. https://github.com/openframeworks/openFrameworks/tree/master/examples/video/asciiVideoExample
+* This was a part of the open frameworks examples, and it accesses the webcam in a way similar to what I think I need to do for this project.
 
 ### How Can I Make This Project a Success? 
 As long as I start early and do my research, this project should be a success :D
