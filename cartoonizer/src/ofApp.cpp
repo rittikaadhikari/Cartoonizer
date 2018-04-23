@@ -33,7 +33,33 @@ void ofApp::draw(){
     
     ofSetHexColor(0xffffff);
     
-    for (int i = 0; i < camWidth; i+= 7){
+    cv::Mat samples(camWidth * camHeight, 3, CV_32F);
+    
+    for (int i = 0; i < camWidth; i++) {
+        for (int j = 0; j < camHeight; j++) {
+            for (int k = 0; k < 3; k++) {
+                samples.at<float>(i + (j * camWidth), k);
+            }
+        }
+    }
+    
+    int clusterCt = 15;
+    cv::Mat labels;
+    int attempts = 5;
+    cv::Mat centers;
+    kmeans(samples, clusterCt, labels, cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10000, 0.0001), attempts, cv::KMEANS_PP_CENTERS, centers);
+    
+    for (int i = 0; i < camWidth; i++) {
+        for (int j = 0; j < camHeight; j++) {
+            int cluster_idx = labels.at<int>(j + (i * camWidth), 0);
+            //pixelsRef.setColor(i, j, ofColor(centers.at<float>(cluster_idx, 0), centers.at<float>(cluster_idx, 1), centers.at<float>(cluster_idx, 2)));
+            //std::cout << centers.at<float>(cluster_idx, 0) << std::endl;
+        }
+    }
+    
+    vidGrabber.update();
+    
+    /*for (int i = 0; i < camWidth; i+= 7){
          for (int j = 0; j < camHeight; j+= 9){
              // get the pixel and its lightness (lightness is the average of its RGB values)
              float lightness = pixelsRef.getColor(i,j).getLightness();
@@ -42,7 +68,7 @@ void ofApp::draw(){
              // draw the character at the correct location
              //font.drawString(ofToString(asciiCharacters[character]), i, j);
          }
-    }
+    }*/
     
 }
 
