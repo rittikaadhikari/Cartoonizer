@@ -1,7 +1,8 @@
 #pragma once
 #include "ofxOpenCv.h"
-
 #include "ofMain.h"
+
+using namespace cv;
 
 class ofApp : public ofBaseApp{
     
@@ -24,6 +25,8 @@ public:
     void gotMessage(ofMessage msg);
     
     ofVideoGrabber vidGrabber;
+    ofTexture cartoon;
+    unsigned char * videoCartoonPixels;
     int camWidth;
     int camHeight;
     
