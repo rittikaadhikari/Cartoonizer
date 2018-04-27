@@ -7,8 +7,8 @@ void ofApp::setup(){
     
     ofBackground(0,0,0);
     
-    camWidth = 1280;    // try to grab at this size.
-    camHeight = 720;
+    camWidth = 640;    // try to grab at this size.
+    camHeight = 480;
     
     vidGrabber.setVerbose(true);
     vidGrabber.setup(camWidth,camHeight);
@@ -35,59 +35,43 @@ void ofApp::draw(){
     ofSetHexColor(0xffffff);
     
     ofPixelsRef pixelsRef = vidGrabber.getPixels();
-    ofImage img = pixelsRef; 
-    cv::Mat samples(camHeight * camWidth, 3, CV_32FC2);
+    ofImage img = pixelsRef;
     
-    for (int i = 0; i < camHeight; i++) {
-        for (int j = 0; j < camWidth; j++) {
-            float red = pixelsRef.getColor(i, j)[0];
-            float green = pixelsRef.getColor(i, j)[1];
-            float blue = pixelsRef.getColor(i, j)[2];
-            
-            samples.at<float>(i * j, 0) = red;
-            samples.at<float>(i * j, 1) = green;
-            samples.at<float>(i * j, 2) = blue;
-        }
+    cv::Mat samples = Mat::zeros(camHeight * camWidth, 5, CV_32F);
+    
+    for (int i = 0; i < camHeight * camWidth; i++) {
+        samples.at<float>(i, 0) = (i / camWidth) / camHeight;
+        samples.at<float>(i, 1) = (i % camWidth) / camWidth;
+        samples.at<float>(i, 2) = pixelsRef.getColor(i)[0] / 255.0;
+        samples.at<float>(i, 3) = pixelsRef.getColor(i)[1] / 255.0;
+        samples.at<float>(i, 4) = pixelsRef.getColor(i)[2] / 255.0;
+        
     }
     
     
-    int clusterCount = 8;
+    int clusterCount = 15;
     Mat labels;
     int attempts = 3;
     Mat centers;
     kmeans(samples, clusterCount, labels,
-           TermCriteria( TermCriteria::EPS+TermCriteria::COUNT, 10, 1.0),
-           3, KMEANS_PP_CENTERS, centers);
+           TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 10, 1.0),
+           8, KMEANS_PP_CENTERS, centers);
     
+    int colors[clusterCount];
+    for (int i = 0; i < clusterCount; i++) {
+        colors[i] = 255 / (i + 1);
+    }
     
     int counter = 0;
-    for (int i = 0; i < camHeight; i++) {
-        for(int j = 0; j < camWidth; j++) {
-            int cluster_idx = labels.at<int>(i + (j * camHeight), 0);
-            int pixel = (centers.at<float>(cluster_idx, 0), centers.at<float>(cluster_idx, 1), centers.at<float>(cluster_idx, 2));
-            videoCartoonPixels[counter] = pixel;
-            counter++;
-        }
+    
+    for (int i = 0; i < camWidth * camHeight; i++) {
+        videoCartoonPixels[i] = (colors[labels.at<int>(0,i)]) ;
     }
     
     cartoon.loadData(videoCartoonPixels, vidGrabber.getWidth(), vidGrabber.getHeight(), GL_LUMINANCE);
-    cartoon.draw(0, 0, 1280, 720);
-        
-    /*int counter = 0;
-    for (int i = 0; i < camHeight; i++) {
-        for (int j = 0; j < camWidth*3; j+=3) {
-            
-            int cluster_idx = labels.at<int>(j + (i * camWidth), 0);
-
-            int grayPixel = (centers.at<float>(cluster_idx, 0), centers.at<float>(cluster_idx, 1), centers.at<float>(cluster_idx, 2));
-            videoCartoonPixels[counter] = grayPixel;
-            counter++;
-        }
-    }
-    cartoon.loadData(videoCartoonPixels, vidGrabber.getWidth(), vidGrabber.getHeight(), GL_LUMINANCE);
-    cartoon.draw(0, 0, 640, 480);*/
-   
-    //vidGrabber.update();
+    cartoon.draw(0, 0, 640, 480);
+    
+    vidGrabber.update();
     
     
 }
