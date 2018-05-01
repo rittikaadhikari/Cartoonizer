@@ -4,9 +4,21 @@
 
 using namespace cv;
 
+enum VideoState {
+    VIDEO = 0,
+    PAUSE,
+    QUIT,
+    SAVE
+};
+
 class ofApp : public ofBaseApp{
+
+private:
+    VideoState current_state_ = VIDEO;
+    void saveScreen();
     
 public:
+    
     
     void setup();
     void update();
