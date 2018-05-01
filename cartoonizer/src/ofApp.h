@@ -8,7 +8,10 @@ enum VideoState {
     VIDEO = 0,
     PAUSE,
     QUIT,
-    SAVE
+    SAVE,
+    GRAYSCALE,
+    CARTOONIZE,
+    ILLINIFY
 };
 
 class ofApp : public ofBaseApp{
@@ -16,6 +19,8 @@ class ofApp : public ofBaseApp{
 private:
     VideoState current_state_ = VIDEO;
     void saveScreen();
+    void drawGrayscale();
+    void drawCartoonize();
     
 public:
     
@@ -36,11 +41,13 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
     
-    ofVideoGrabber vidGrabber;
-    ofTexture cartoon;
-    unsigned char * videoCartoonPixels;
-    int camWidth;
-    int camHeight;
+    ofVideoGrabber vid_grabber;
+    ofTexture texture;
+    unsigned char * texture_pixels;
+    int cam_width;
+    int cam_height;
+    ofSoundPlayer mySound;
+
     
     
 };

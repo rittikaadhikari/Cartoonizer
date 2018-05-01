@@ -8,14 +8,16 @@ static int num_pictures = 0;
 void ofApp::setup(){
     ofSetWindowTitle("Cartoonizer");
     ofSetBackgroundColor(255, 255, 255);
+
+    mySound.load("file.mp3", true);
     
-    camWidth = 640;    // try to grab at this size.
-    camHeight = 480;
+    cam_width = 640;    // try to grab at this size.
+    cam_height = 480;
     
-    vidGrabber.setVerbose(true);
-    vidGrabber.setup(camWidth,camHeight);
-    videoCartoonPixels = new unsigned char[camWidth * camHeight];
-    cartoon.allocate(camWidth, camHeight, GL_LUMINANCE);
+    vid_grabber.setVerbose(true);
+    vid_grabber.setup(cam_width, cam_height);
+    texture_pixels = new unsigned char[cam_width * cam_height];
+    texture.allocate(cam_width, cam_height, GL_LUMINANCE);
 
     ofEnableAlphaBlending();
 }
@@ -23,22 +25,102 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    mySound.play();
+
     if (current_state_ == VIDEO) {
-        vidGrabber.update();
+        vid_grabber.update();
     } else if (current_state_ == PAUSE) {
+        
     } else if (current_state_ == SAVE) {
         saveScreen();
         current_state_ = PAUSE;
     } else if (current_state_ == QUIT) {
-        vidGrabber.close();
+        vid_grabber.close();
+    } else if (current_state_ == GRAYSCALE) {
+        drawGrayscale();
+        saveScreen();
+        current_state_ = PAUSE;
+    } else if (current_state_ == CARTOONIZE) {
+        drawCartoonize();
+        saveScreen();
+        current_state_ = PAUSE;
     }
     
 }
 
 
 //--------------------------------------------------------------
+void ofApp::drawGrayscale() {
+    ofImage img = vid_grabber.getPixels();
+    int counter = 0;
+    for (int i = 0; i < cam_height; i++) {
+        for (int j = 0; j < cam_width*3; j+=3) {
+            // get r, g and b components
+            int r = (i*cam_width*3) + j;
+            int g = (i*cam_width*3) + (j+1);
+            int b = (i*cam_width*3) + (j+2);
+            
+            int grayPixel = (11 * img.getPixels()[r] + 16 * img.getPixels()[g] + 5 * img.getPixels()[b]) / 32;
+            texture_pixels[counter] = grayPixel;
+            counter++;
+            
+            
+        }
+    }
+    
+    texture.loadData(texture_pixels, vid_grabber.getWidth(), vid_grabber.getHeight(), GL_LUMINANCE);
+    texture.draw(0, 0, cam_width, cam_height);
+    vid_grabber.update();
+}
+
+//--------------------------------------------------------------
+void ofApp::drawCartoonize() {
+    ofPixels pixels_ref = vid_grabber.getPixels();
+    
+    cv::Mat samples = Mat::zeros(cam_height * cam_width, 5, CV_32F);
+    
+    for (int i = 0; i < cam_height * cam_width; i++) {
+        samples.at<float>(i, 0) = (i % cam_width) / cam_height;
+        samples.at<float>(i, 1) = (i / cam_width) / cam_width;
+        
+        // normalize colors
+        samples.at<float>(i, 2) = pixels_ref.getColor(i)[0] / 255.0;
+        samples.at<float>(i, 3) = pixels_ref.getColor(i)[1] / 255.0;
+        samples.at<float>(i, 4) = pixels_ref.getColor(i)[2] / 255.0;
+        
+    }
+    
+    
+    int cluster_count = 12;
+    Mat labels;
+    int attempts = 3;
+    Mat centers;
+    
+    // add constants as params
+    kmeans(samples, cluster_count, labels,
+           TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 10, 1.0),
+           attempts, KMEANS_PP_CENTERS, centers);
+    
+    int colors[cluster_count];
+    for (int i = 0; i < cluster_count; i++) {
+        colors[i] = 255 / (i + 1);
+    }
+    
+    int counter = 0;
+    
+    for (int i = 0; i < cam_width * cam_height; i++) {
+        texture_pixels[i] = (colors[labels.at<int>(0,i)]) ;
+    }
+    
+    texture.loadData(texture_pixels, vid_grabber.getWidth(), vid_grabber.getHeight(), GL_LUMINANCE);
+    texture.draw(0, 0, cam_width, cam_height);
+    
+    vid_grabber.update();
+}
+
+//--------------------------------------------------------------
 void ofApp::saveScreen() {
-    ofImage img = vidGrabber.getPixels();
+    ofImage img = vid_grabber.getPixels();
     img.save("screengrab" + std::to_string(num_pictures) + ".png");
     num_pictures++;
 }
@@ -50,55 +132,13 @@ void ofApp::draw(){
     ofSetColor(255,255,255,413);
     
     // draw the raw video frame with the alpha value generated above
-    vidGrabber.draw(0,0);
+    vid_grabber.draw(0,0);
     
     ofSetHexColor(0xffffff);
     
-    ofPixelsRef pixelsRef = vidGrabber.getPixels();
+    ofPixelsRef pixelsRef = vid_grabber.getPixels();
     ofImage img = pixelsRef;
     
-    
-    
-    
-    /*cv::Mat samples = Mat::zeros(camHeight * camWidth, 5, CV_32F);
-    
-    for (int i = 0; i < camHeight * camWidth; i++) {
-        samples.at<float>(i, 0) = (i / camWidth) / camHeight;
-        samples.at<float>(i, 1) = (i % camWidth) / camWidth;
-        
-        // normalize colors
-        samples.at<float>(i, 2) = pixelsRef.getColor(i)[0] / 255.0;
-        samples.at<float>(i, 3) = pixelsRef.getColor(i)[1] / 255.0;
-        samples.at<float>(i, 4) = pixelsRef.getColor(i)[2] / 255.0;
-        
-    }
-    
-    
-    int clusterCount = 12;
-    Mat labels;
-    int attempts = 3;
-    Mat centers;
-    
-    // add constants as params
-    kmeans(samples, clusterCount, labels,
-           TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 10, 1.0),
-           attempts, KMEANS_PP_CENTERS, centers);
-    
-    int colors[clusterCount];
-    for (int i = 0; i < clusterCount; i++) {
-        colors[i] = 255 / (i + 1);
-    }
-    
-    int counter = 0;
-    
-    for (int i = 0; i < camWidth * camHeight; i++) {
-        videoCartoonPixels[i] = (colors[labels.at<int>(0,i)]) ;
-    }
-    
-    cartoon.loadData(videoCartoonPixels, vidGrabber.getWidth(), vidGrabber.getHeight(), GL_LUMINANCE);
-    cartoon.draw(0, 0, 640, 480);
-    
-    vidGrabber.update();*/
     
     
 }
@@ -120,6 +160,18 @@ void ofApp::keyPressed(int key){
         update();
     } else if (key == 's' || key == 'S') {
         current_state_ = SAVE;
+        update();
+    } else if (key == 'v' || key == 'V') {
+        current_state_ = VIDEO;
+        update();
+    } else if (key == 'g' || key == 'G') {
+        current_state_ = GRAYSCALE;
+        update();
+    } else if (key == 'c' || key == 'C') {
+        current_state_ = CARTOONIZE;
+        update();
+    } else if (key == 'i' || key == 'I') {
+        current_state_ = ILLINIFY;
         update();
     }
     
