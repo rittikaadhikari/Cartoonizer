@@ -9,7 +9,9 @@ void ofApp::setup(){
     ofSetWindowTitle("Cartoonizer");
     ofSetBackgroundColor(255, 255, 255);
 
-    mySound.load("file.mp3", true);
+    //mySound.load("01 ...Ready For It_.mp3");
+    //mySound.play();
+
     
     cam_width = 640;    // try to grab at this size.
     cam_height = 480;
@@ -25,7 +27,6 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    mySound.play();
 
     if (current_state_ == VIDEO) {
         vid_grabber.update();
