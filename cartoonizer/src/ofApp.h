@@ -21,6 +21,7 @@ private:
     void saveScreen();
     void drawGrayscale();
     void drawCartoonize();
+    void drawIllinify();
     
 public:
     
