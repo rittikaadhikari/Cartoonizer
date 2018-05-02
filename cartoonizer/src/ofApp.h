@@ -11,7 +11,8 @@ enum VideoState {
     SAVE,
     GRAYSCALE,
     CARTOONIZE,
-    ILLINIFY
+    ILLINIFY,
+    BLUESCREEN
 };
 
 class ofApp : public ofBaseApp{
@@ -22,9 +23,12 @@ private:
     void drawGrayscale();
     void drawCartoonize();
     void drawIllinify();
+    void drawBluescreen();
+
     
 public:
-    
+    ofTrueTypeFont font;
+
     
     void setup();
     void update();

@@ -7,7 +7,9 @@ static int num_pictures = 0;
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofSetWindowTitle("Cartoonizer");
-    ofSetBackgroundColor(255, 255, 255);
+    ofSetBackgroundColor(0, 0, 0);
+    font.load("Courier New Bold.ttf", 9);
+
 
     mySound.load("01 ...Ready For It_.mp3");
     mySound.play();
@@ -32,8 +34,11 @@ void ofApp::update(){
         texture = vid_grabber.getTexture();
         vid_grabber.update();
     } else if (current_state_ == PAUSE) {
+        ofSetColor(0, 0, 177);
+        font.drawString("Hi", 100, 100);
     } else if (current_state_ == SAVE) {
         saveScreen();
+        ofSetColor(0, 0, 0);
         current_state_ = PAUSE;
     } else if (current_state_ == QUIT) {
         vid_grabber.close();
@@ -47,6 +52,10 @@ void ofApp::update(){
         current_state_ = PAUSE;
     } else if (current_state_ == ILLINIFY) {
         drawIllinify();
+        saveScreen();
+        current_state_ = PAUSE;
+    } else if (current_state_ == BLUESCREEN) {
+        drawBluescreen();
         saveScreen();
         current_state_ = PAUSE;
     }
@@ -96,6 +105,29 @@ void ofApp::drawIllinify() {
         ofColor new_color;
         new_color.setHsb(hue, saturation, brightness);
         temp.setColor(x, y, new_color);
+        
+    }
+    
+    texture.loadData(temp.getPixels());
+    texture.draw(0, 0, cam_width, cam_height);
+}
+
+//--------------------------------------------------------------
+void ofApp::drawBluescreen() {
+    ofImage img = vid_grabber.getPixels();
+    int counter = 0;
+    
+    ofImage temp;
+    temp.allocate(cam_width, cam_height, OF_IMAGE_COLOR);
+    temp.setColor(ofColor::white);
+    for (int i = 0; i < cam_width * cam_height; i++) {
+        int x = i % cam_width;
+        int y = i / cam_width;
+        
+        ofColor color = img.getColor(x, y);
+        color.r = 0;
+        color.g = 0;
+        temp.setColor(x, y, color);
         
     }
     
@@ -194,6 +226,12 @@ void ofApp::draw(){
         
     ofPixelsRef pixelsRef = vid_grabber.getPixels();
     ofImage img = pixelsRef;
+
+    ofSetColor(ofColor::white);
+    ofRectangle myRect(0, 0, cam_width, 30);
+    ofDrawRectangle(myRect);
+    ofSetColor(ofColor::black);
+    font.drawString("COMMANDS:\nC - Cartoonize\t\t\t\t B - Bluescreen\t\t\t\t G - Grayscale\t\t\t\t V - Video Mode\t\t\t\t P - Pause\t\t\t\t", 15, 15);
     
 }
 
@@ -226,6 +264,9 @@ void ofApp::keyPressed(int key){
         update();
     } else if (key == 'i' || key == 'I') {
         current_state_ = ILLINIFY;
+        update();
+    } else if (key == 'b' || key == 'B') {
+        current_state_ = BLUESCREEN;
         update();
     }
     
