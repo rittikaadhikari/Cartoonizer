@@ -1,7 +1,7 @@
 # Project Proposal: SP18, Software Design Studio
 
 ## Cartoonizer
-For my final project, I want to take it all the way back to the old days of PhotoBooth. I fondly remember using PhotoBooth for all of its wacky filters and as a general means to waste time in middle school. Now, I want to create an open frameworks application that accesses your laptop's webcam and cartoonizes your face in real-time. 
+For my final project, I want to take it all the way back to the old days of PhotoBooth. I fondly remember using PhotoBooth for all of its wacky filters and as a general means to waste time in middle school. Now, I want to create an open frameworks application that accesses your laptop's webcam, and will apply filters to your face & saves them, depending on what key you press! I also want to include a beta cartoonize-video mode. 
 
 ### How Can I Get Started? 
 #### Webcam Interface
